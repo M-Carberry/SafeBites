@@ -9,7 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    console.log({ Username, password });
+    router.push("/main_dashboard");
   };
 
   return (
