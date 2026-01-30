@@ -11,7 +11,8 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSignUp = () => {
-    console.log({ name, email, password, confirmPassword });
+        //For Main Dashboard
+  router.push("/screening screens/screening");
   };
 
   return (
