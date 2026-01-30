@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
 
   bottomPanel: {
-    flex: 1, // take the other half
+    flex: 1, 
     backgroundColor: "#674f5d",
     paddingTop: 50,
     paddingVertical: 40,
