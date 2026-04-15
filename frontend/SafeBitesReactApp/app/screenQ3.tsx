@@ -43,9 +43,10 @@ React.useEffect(() => {
 
   /* manages the checkbox selection values */
   const toggleValue = (item) => {
-    const updatedValues = selectedValues.includes(item)
-      ? selectedValues.filter((v) => v !== item)
-      : [...selectedValues, item];
+   // change to one selection button
+const updatedValues = selectedValues.includes(item)
+  ? []
+  : [item];
 
     setSelectedValues(updatedValues); 
    
