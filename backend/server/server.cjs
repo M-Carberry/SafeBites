@@ -28,7 +28,7 @@ let db;
 connectToDatabase()
     .then((database) => {
         db = database;
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`SafeBites backend running on port ${PORT}`);
         });
     })
