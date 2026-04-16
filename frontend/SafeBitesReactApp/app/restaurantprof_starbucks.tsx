@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useFavorites } from "@/context/userFavorites";
 
+import { Linking } from 'react-native';
 
 //these will be functional later for the nav back button, then the review handling etc.
 export default function RestProfile() {
@@ -256,10 +257,10 @@ export default function RestProfile() {
 
       {/* STICKY BUTTONS at bottom */}
       <View style={styles.stickyBtns}>
-        <Pressable style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Go to{"\n"}restaurant</Text>
-        </Pressable>
-        <Pressable style={styles.actionButton}>
+        <Pressable 
+          style={styles.actionButton}
+          onPress={() => Linking.openURL('https://www.starbucks.com/menu')}
+        >
           <Text style={styles.actionButtonText}>See full{"\n"}menu</Text>
         </Pressable>
       </View>
