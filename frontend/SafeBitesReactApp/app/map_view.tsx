@@ -1,11 +1,28 @@
 import { StyleSheet, Text, View, Pressable, Image, ScrollView, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import DiscoverFilter from "./Discover_filter"; // fixed by cami I imported filter component
+import DiscoverFilter from "./Discover_filter";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
+import { useEffect } from "react"; 
 
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false); //state for filter popup added by Cams
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+  (async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.log("Permission denied");
+      return;
+    }
+
+    const { coords } = await Location.getCurrentPositionAsync({});
+    setLocation(coords);
+  })();
+}, []);
 
   return (
     <View style={styles.container}>
@@ -34,28 +51,31 @@ export default function Discover() {
       </View>
 
       {/*filter*/}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {["Nearby", "Most popular", "Low price", "Open now"].map((item) => (
-          <View key={item} style={styles.filterButton}>
-            <Text style={styles.filterText}>{item}</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/*map */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.mapScroll}
-      >
-        <Image
-          source={require("../assets/images/orlando-map.png")}
-          style={styles.mapImage}
-        />
-      </ScrollView>
+      {/*map*/}
+      <View style={styles.mapContainer}>
+        {location ? (
+          <MapView
+            style={styles.map}
+            showsUserLocation={true}
+            region={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+              }}
+              title="You are here!"
+            />
+          </MapView>
+        ) : (
+          <Text>Map loading</Text>
+        )}
+      </View>
 
       <View style={styles.searchFloating}>
         <Image
@@ -167,11 +187,16 @@ mapScroll: {
   paddingTop:25,
 },
 
-mapImage: {
-  width: "100%",
-  height: 620,
-  borderRadius: 24,
+mapContainer: {
+  height: 600,
+  marginHorizontal: 15,
+  marginTop: 10,
+  borderRadius: 20,
+  overflow: "hidden",
+},
 
+map: {
+  flex: 1,
 },
 
 searchFloating: {
