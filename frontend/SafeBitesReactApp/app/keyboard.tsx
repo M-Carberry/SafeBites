@@ -1,9 +1,32 @@
 import { router } from "expo-router";
-import * as React from "react";
+import React, { useState } from 'react';
 import { Text, Image, View, StyleSheet, Pressable } from "react-native";
 import {Provider as PaperProvider } from "react-native-paper";
+import { Searchbar } from 'react-native-paper';
+
+
+
 
 export default function AccountInfo() {
+  //for searchbar
+  const [searchQuery, setSearchQuery] = useState('');
+  const suggestions = [
+      "Bento",
+      "Chick-fil-a",
+      "Dunkin",
+      "Einstein Bagel Bros",
+      "Halal Shack",
+      "Huey Magoos",
+      "Panda Express",
+      "Purple Ocean",
+      "Qdoba",
+      "Starbucks",
+  ];
+
+const filtered = suggestions
+  .filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
+  .slice(0, 3);
+  
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -19,40 +42,26 @@ export default function AccountInfo() {
           </Pressable>
         </View>
 
-
-        <View style={styles.body}>
-          {[
-            "restaurant suggestion 1",
-            "restaurant suggestion 2",
-            "restaurant suggestion 3",
-            "restaurant suggestion 4",
-            "restaurant suggestion 5",
-          ].map((item, index) => (
-            <View key={index} style={styles.clicky}>
-              <Image
-                source={require("../assets/images/search.png")}
-                style={styles.searchy}
-              />
-              <Text style={styles.restSug}>{item}</Text>
-            </View>
-          ))}
+      {filtered.map((item, index) => (
+        <View key={index} style={styles.clicky}>
+          <Image
+            source={require("../assets/images/search.png")}
+            style={styles.searchy}
+          />
+          <Text style={styles.restSug}>{item}</Text>
         </View>
-      </View>
+      ))}
 
-
-      <View style={styles.searchFloating}>
-        <Image
-          source={require("../assets/images/search.png")}
-          style={styles.searchIcon}
+      <View style={styles.searchSpacing}>
+        <Searchbar 
+            placeholder="Search"
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={styles.searchFloating}
+            inputStyle={styles.searchText}
         />
-        <Text onPress={() => router.push("/keyboard")} style={styles.searchText}>Search</Text>
       </View>
-
-      <View style={styles.key}>
-        <Image source={require("../assets/images/English.png")}
-        style={styles.english}></Image>
       </View>
-
     </PaperProvider>
   );
 }
@@ -124,21 +133,28 @@ const styles = StyleSheet.create({
     borderRadius:30,
     tintColor:"#FFF8F3",
   },
-   searchFloating: {
+  searchFloating: {
+    backgroundColor: "#FFF8F3",
+    borderRadius: 26,
+    width: "100%",
+    paddingVertical: 8,
+    borderWidth: 3,
+    borderColor: "#674f5d",
+    shadowOpacity:0.9,
+    shadowOffset: { width: 7, height: 7 },
+    shadowColor: "#674f5d",
+  
+},
+
+  searchSpacing: {
   position: "absolute",
-  bottom: 370,
+  bottom: 360,
   alignSelf: "center",
   flexDirection: "row",
   alignItems: "center",
-  backgroundColor: "#FFF8F3",
-  borderRadius: 26,
-  paddingHorizontal: 140,
+  paddingHorizontal: 50,
   paddingVertical: 12,
-  borderWidth: 3,
-  borderColor: "#674f5d",
-  shadowOpacity:0.9,
-  shadowOffset: { width: 7, height: 7 },
-  shadowColor: "#674f5d",
+
 },
 
 searchIcon: {
