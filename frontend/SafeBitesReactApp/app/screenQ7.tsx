@@ -1,33 +1,51 @@
 import { router } from "expo-router";
 import * as React from "react";
-import { Text, View, Pressable, StyleSheet } from "react-native";
+import { Text, View, Pressable, StyleSheet, Alert, ActivityIndicator } from "react-native";
 //import { Checkbox, Provider as PaperProvider } from "react-native-paper";
 import {Provider as PaperProvider } from "react-native-paper";
 //these are for the icon check-circle
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useUserPreferences } from "../context/UserPreferenceContext";
 
 export default function Q1Answers() {
+  const { savePreferencesMongoDB } = useUserPreferences();
+  const [loading, setLoading] = React.useState(false);
+
+    const handleGoToDashboard = async () => {
+    setLoading(true);
+    try {
+      await savePreferencesMongoDB();
+      router.push('/main_dashboard');
+    } catch (err) {
+      Alert.alert("Error", "Could not save preferences. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <PaperProvider>
       <View style={styles.container}>
-
         <View style={styles.body}>
           <Text style={styles.header}>Thank You!</Text>
           <View style={styles.icon}>
-          <AntDesign name="check-circle" size={60} color="#C5DBCA" /> </View>
+            <AntDesign name="check-circle" size={60} color="#C5DBCA" />
+          </View>
           <Text style={styles.text}>We will save this information to</Text>
           <Text style={styles.text}>personalize your dining</Text>
           <Text style={styles.text}>experience.</Text>
         </View>
 
-
-        {/* Next Button */}
-       <View style={styles.nextButton}>
-          <Pressable onPress={() => router.push('/main_dashboard')}>
-            <Text style={[styles.nextButton, styles.nextButtonBorder]}> Go to Main Dashboard </Text>
+        <View style={styles.nextButton}>
+          <Pressable onPress={handleGoToDashboard} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color="#674F5D" />
+              : <Text style={[styles.nextButton, styles.nextButtonBorder]}>Go to Main Dashboard</Text>
+            }
           </Pressable>
-        </View>`
+        </View>
       </View>
     </PaperProvider>
   );

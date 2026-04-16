@@ -2,10 +2,20 @@ import { StyleSheet, Text, View, Pressable, Image, ScrollView } from "react-nati
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useUserPreferences } from "../context/UserPreferenceContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect} from "react";
+
 
 export default function MainDashboard() {
   const router = useRouter();
   const { preferences } = useUserPreferences();
+  const [userName, setUserName] = useState("");
+
+   useEffect(() => {
+    AsyncStorage.getItem("userName").then((name) => {
+      if (name) setUserName(name);
+    });
+  }, []);
 
 const labelMap: Record<string, string> = {
   manageweight: "Manage Weight",
@@ -24,7 +34,7 @@ const formatLabel = (text: string) => text.charAt(0).toUpperCase() + text.slice(
         <View style={styles.header}>
           <View style={styles.welcomeRow}>
             <View style={styles.welcomeName}>
-              <Text style={styles.welcomeText}>Hi, Jane</Text>
+              <Text style={styles.welcomeText}>Hi, {userName || "!"}!</Text>
             </View>
 
             <Pressable onPress={() => router.push("/profile")}>

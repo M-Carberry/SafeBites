@@ -1,80 +1,44 @@
-import { StyleSheet, Text, FlatList, View, Pressable, Image, Modal, ScrollView } from "react-native";
+import { StyleSheet, Text, FlatList, View, Pressable, Image, Modal, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import DiscoverFilter from "./Discover_filter"; //now this goes properly to filter screen cami
 import { useState } from "react";
+import { useFavorites } from "../context/userFavorites"; 
+import DiscoverFilter from "./Discover_filter";
 
-export default function Discover() {
+export default function Favorites() {
   const router = useRouter();
-   const [showFilter, setShowFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const { favorites, toggleFav, isFav, loading } = useFavorites();
 
-  const restaurants = [
-    {
-      id: "1",
-      name: "Chick-Fil-A",
-      type: "American fast food",
-      distance: "0.5 mi",
-      image: require("../assets/images/chickfila.jpg"),
-      route:"/restaurantprof_chickfila",
-    },
-    {
-      id: "2",
-      name: "Qdoba",
-      type: "Mexican food",
-      distance: "0.7 mi",
-      image: require("../assets/images/qdoba.jpg"),
-      route:"/restaurantprof_qdoba",
-    },
-    {
-      id: "4",
-      name: "Panda Express",
-      type: "Chinese fast food",
-      distance: "1.1 mi",
-      image: require("../assets/images/panda.jpeg"),
-      route:"/restaurantprof_panda",
-    },
-    {
-      id: "5",
-      name: "Dunkin Donuts",
-      type: "American Cafe",
-      distance: "2 mi",
-      image: require("../assets/images/dunkin.jpg"),
-      route:"/restaurantprof_dunkin",
-
-    },
-    {
-      id: "6",
-      name: "Purple Ocean Superfood Bar",
-      type: "Vegan Kitchen",
-      distance: "2.6 mi",
-      image: require("../assets/images/purple.jpg"),
-      route:"/restaurantprof_purple",
-    },
-  ];
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#674F5D" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
 
-      {/* top area */}
       <View style={styles.topRow}>
         <Text style={styles.discoverTitle}>Favorites</Text>
-
         <View style={styles.iconRow}>
           <Pressable onPress={() => router.push("/map_favorites")}>
-                <Image
-                    source={require("../assets/images/icon.png")}
-                    style={styles.topIcon}
-                />
-            </Pressable>
-            <Pressable onPress={() => setShowFilter(true)}>
-              <Image
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={styles.topIcon}
+            />
+          </Pressable>
+          <Pressable onPress={() => setShowFilter(true)}>
+            <Image
               source={require("../assets/images/filter.png")}
               style={styles.topIcon}
             />
-            </Pressable>
+          </Pressable>
         </View>
       </View>
 
-      {/* filters */}
+      {/*filters*/}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -87,75 +51,88 @@ export default function Discover() {
         ))}
       </ScrollView>
 
-      {/*card grid*/}
-     <FlatList
-  data={restaurants}
-  keyExtractor={(item) => item.id}
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={styles.listContent}
-renderItem={({ item }) => (
-  <View style={styles.cardShadow}>
-    <Pressable style={styles.card} 
-     onPress={()=>router.push(item.route as any)}>
-      <Image source={item.image} style={styles.cardImage} />
+      {/*fav list*/}
+      <FlatList
+        data={favorites} 
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={{ alignItems: "center", marginTop: 60 }}>
+            <Text style={{ color: "#674F5D", fontSize: 16 }}>
+              No favorites yet!
+            </Text>
+            <Text style={{ color: "#674F5D", fontSize: 14, marginTop: 8 }}>
+              Tap the heart on any restaurant to save it here.
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.cardShadow}>
+            <Pressable
+              style={styles.card}
+              onPress={() => router.push(item.route as any)}
+            >
+              <Image source={item.image} style={styles.cardImage} />
 
-      <View style={styles.cardText}>
-        <Text style={styles.restaurantName}>{item.name}</Text>
-        <Text style={styles.restaurantType}>{item.type}</Text>
-        <Text style={styles.distance}>{item.distance}</Text>
+              <View style={styles.cardText}>
+                <Text style={styles.restaurantName}>{item.name}</Text>
+                <Text style={styles.restaurantType}>{item.type}</Text>
+                <Text style={styles.distance}>{item.distance}</Text>
+              </View>
+
+              {/*heart button*/}
+              <Pressable
+                style={styles.heartIcon}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleFav(item);
+                }}
+              >
+                <Image
+                  source={
+                    isFav(item.id)
+                      ? require("../assets/images/heartFilled.png")
+                      : require("../assets/images/heart.png")
+                  }
+                  style={{ width: 25, height: 25 }}
+                />
+              </Pressable>
+            </Pressable>
+          </View>
+        )}
+      />
+
+      <View style={styles.searchFloating}>
+        <Image
+          source={require("../assets/images/search.png")}
+          style={styles.searchIcon}
+        />
+        <Text onPress={() => router.push("/keyboard")} style={styles.searchText}>
+          Search
+        </Text>
       </View>
 
-      <Image
-        source={require("../assets/images/heart.png")}
-        style={[styles.heartIcon]}
-      />
-    </Pressable>
-  </View>
-)}
-/>
-
-
-       <View style={styles.searchFloating}>
-             <Image
-               source={require("../assets/images/search.png")}
-               style={styles.searchIcon}
-             />
-             <Text onPress={()=>router.push("/keyboard")} style={styles.searchText}>Search</Text>
-           </View>
-
-      
       <View style={styles.navBar}>
         <Pressable onPress={() => router.push("/main_dashboard")}>
-          <Image
-            source={require("../assets/images/house.png")}
-            style={styles.navIcon}
-          />
+          <Image source={require("../assets/images/house.png")} style={styles.navIcon} />
         </Pressable>
-
         <Pressable onPress={() => router.push("/Discover")}>
-          <Image
-            source={require("../assets/images/compass.png")}
-            style={styles.navIcon}
-          />
+          <Image source={require("../assets/images/compass.png")} style={styles.navIcon} />
         </Pressable>
-
         <Pressable onPress={() => router.push("/favorites")}>
-          <Image
-            source={require("../assets/images/heart.png")}
-            style={styles.navIcon}
-          />
+          <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
         </Pressable>
       </View>
-      <Modal
-              visible={showFilter}
-              transparent={true}
-              animationType="slide"
-              onRequestClose={() => setShowFilter(false)}
-            >
-              <DiscoverFilter onClose={() => setShowFilter(false)} />
-      </Modal>
-      
 
+      <Modal
+        visible={showFilter}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilter(false)}
+      >
+        <DiscoverFilter onClose={() => setShowFilter(false)} />
+      </Modal>
     </View>
   );
 }

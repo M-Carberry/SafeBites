@@ -4,6 +4,8 @@ import { Text, View, Pressable, StyleSheet } from "react-native";
 import { layouts, spacing } from "../styles/spacing";
 import { Colors } from "../styles/colors";
 import { useUserPreferences } from "../context/UserPreferenceContext";
+import { API_BASE_URL } from "../constants/api";
+
 
 /* whole block manages options being added to an array + option styling and stuff , yes we are going to have to manage strings later*/
 /* Backend phase change variable names*/

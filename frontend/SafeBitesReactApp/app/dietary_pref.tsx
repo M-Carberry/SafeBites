@@ -5,7 +5,7 @@ import { Text, Image, View, StyleSheet, Pressable, ScrollView } from "react-nati
 import { Divider } from "react-native-paper";
 import { useUserPreferences } from "../context/UserPreferenceContext";
 
-const Option = ({ label, value, selectedValues, toggleValue }) => {
+const Option = ({label, value, selectedValues, toggleValue}) => {
   const isChecked = selectedValues.includes(value);
 
   return (
@@ -46,7 +46,7 @@ React.useEffect(() => {
   const toggleHealthGoal = (item) => setSelectedHealthGoals((prev) =>
     prev.includes(item) ? prev.filter((v) => v !== item) : [...prev, item]);
 
-  // ✅ single handleSave using updateManyPreferences
+  //single handleSave using updateManyPreferences
   const handleSave = () => {
     updateManyPreferences({
       allergies: selectedAllergies,

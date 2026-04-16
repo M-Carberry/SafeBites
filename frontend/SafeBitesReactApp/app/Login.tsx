@@ -5,7 +5,8 @@ import { Colors } from "../styles/colors";
 import { API_BASE_URL } from "../constants/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { KeyboardAvoidingView,Platform } from "react-native";
-
+import { useFavorites } from "../context/userFavorites";
+import { useUserPreferences } from "../context/UserPreferenceContext";
 
 export default function Login() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function Login() {
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [loading, setLoading] = useState(false);
+const { loadFavorites } = useFavorites();
+const { loadPreferencesFromDB } = useUserPreferences();
 
 const handleLogin = async () => {
   if (!email || !password) {
@@ -37,6 +40,8 @@ const handleLogin = async () => {
 
     await AsyncStorage.setItem("userId", data.userId.toString());
     await AsyncStorage.setItem("userName", data.name);
+    await loadFavorites();
+    await loadPreferencesFromDB();
 
     router.push("/main_dashboard");
 

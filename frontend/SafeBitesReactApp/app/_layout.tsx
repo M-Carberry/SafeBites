@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font"; //ADDED BY CAMI , this lets us load custom fonts
 import { UserPreferencesProvider } from "../context/UserPreferenceContext";
-
+import { FavoritesProvider } from "../context/userFavorites";
 
 export default function RootLayout() {
 
@@ -22,7 +22,9 @@ export default function RootLayout() {
 
   return (
     <UserPreferencesProvider>
-      <Stack />
+      <FavoritesProvider>  
+        <Stack />
+      </FavoritesProvider>
     </UserPreferencesProvider>
   );
 }
