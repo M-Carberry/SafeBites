@@ -1,58 +1,81 @@
-import { StyleSheet, Text, View, Pressable, Image, Modal, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, Image, ScrollView, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import DiscoverFilter from "./Discover_filter"; // fixed by cami I imported filter component
+import DiscoverFilter from "./Discover_filter";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
+import { useEffect } from "react"; 
 
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false); //state for filter popup added by Cams
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+  (async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.log("Permission denied");
+      return;
+    }
+
+    const { coords } = await Location.getCurrentPositionAsync({});
+    setLocation(coords);
+  })();
+}, []);
 
   return (
     <View style={styles.container}>
 
-      {/*head */}
+      {/*header*/}
       <View style={styles.topRow}>
         <Text style={styles.discoverTitle}>Favorites</Text>
 
         <View style={styles.iconRow}>
-          <Pressable onPress={() => router.push("/favorites")}>
+          <Pressable onPress={() => router.push("/Discover")}>
             <Image
             source={require("../assets/images/grid.png")}
             style={styles.topIcon}
           />
           </Pressable>
-      
+
+          {/*by cami open filter popup overlay instead of navigation */}
           <Pressable onPress={() => setShowFilter(true)}>
-                      <Image
-                      source={require("../assets/images/filter.png")}
-                      style={styles.topIcon}
-                    />
+            <Image
+            source={require("../assets/images/filter.png")}
+            style={styles.topIcon}
+          />
           </Pressable>
-          
+
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {["Nearby", "Most popular", "Low price", "Open now"].map((item) => (
-          <View key={item} style={styles.filterButton}>
-            <Text style={styles.filterText}>{item}</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.mapScroll}
-      >
-        <Image
-          source={require("../assets/images/orlando-map.png")}
-          style={styles.mapImage}
-        />
-      </ScrollView>
+      {/*filter*/}
+      {/*map*/}
+      <View style={styles.mapContainer}>
+        {location ? (
+          <MapView
+            style={styles.map}
+            showsUserLocation={true}
+            region={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+              }}
+              title="You are here!"
+            />
+          </MapView>
+        ) : (
+          <Text>Map loading</Text>
+        )}
+      </View>
 
       <View style={styles.searchFloating}>
         <Image
@@ -62,6 +85,7 @@ export default function Discover() {
         <Text onPress={()=>router.push("/keyboard")} style={styles.searchText}>Search</Text>
       </View>
 
+      {/*nav*/}
       <View style={styles.navBar}>
         <Pressable onPress={() => router.push("/main_dashboard")}>
           <Image
@@ -84,14 +108,16 @@ export default function Discover() {
           />
         </Pressable>
       </View>
-       <Modal
-              visible={showFilter}
-              transparent={true}
-              animationType="slide"
-              onRequestClose={() => setShowFilter(false)}
-            >
-              <DiscoverFilter onClose={() => setShowFilter(false)} />
-        </Modal>
+
+      {/* fixed by camfilter popup overlay */}
+      <Modal
+        visible={showFilter}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilter(false)}
+      >
+        <DiscoverFilter onClose={() => setShowFilter(false)} />
+      </Modal>
 
     </View>
   );
@@ -116,6 +142,7 @@ discoverTitle: {
   fontWeight: "600",
   color: "#8AA197",
   marginLeft:10,
+  fontFamily: "BBHHegarty-Regular", //corrected font name typo - cami
 },
 
 iconRow: {
@@ -154,18 +181,22 @@ filterRow: {
     fontFamily: "Quicksand-SemiBold",
   },
 
-
 mapScroll: {
   paddingHorizontal: 16,
   paddingBottom: 200,
   paddingTop:25,
 },
 
-mapImage: {
-  width: "100%",
-  height: 620,
-  borderRadius: 24,
-  
+mapContainer: {
+  height: 600,
+  marginHorizontal: 15,
+  marginTop: 10,
+  borderRadius: 20,
+  overflow: "hidden",
+},
+
+map: {
+  flex: 1,
 },
 
 searchFloating: {
@@ -217,8 +248,8 @@ navIcon: {
 },
 
 navIconActive: {
-  width: 37,
-  height: 37,
+  width: 38,
+  height: 38,
   tintColor: "#7A9A87",
 },
 
