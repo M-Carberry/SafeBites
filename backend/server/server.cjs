@@ -222,3 +222,69 @@ app.post('/api/reviews', async (req, res) => {
         res.status(500).json({ error: 'Server error creating review.' });
     }
 });
+
+//loads favs
+app.get('/api/favorites/:userId', async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'Database not connected yet.' });
+
+    const { userId } = req.params;
+
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID.' });
+    }
+
+    const result = await db.collection('favorites').findOne({
+      userId: new ObjectId(userId)
+    });
+
+    //return the restaurants array, or empty array if none saved yet
+    res.status(200).json(result?.restaurants || []);
+
+  } catch (error) {
+    console.error('Favorites fetch error:', error);
+    res.status(500).json({ error: 'Server error fetching favorites.' });
+  }
+});
+
+
+app.post('/api/favorites/:userId', async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'Database not connected yet.' });
+
+    const { userId } = req.params;
+    const { restaurant } = req.body;
+
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID.' });
+    }
+
+    //checks if restaurants saved
+    const existing = await db.collection('favorites').findOne({
+      userId: new ObjectId(userId)
+    });
+
+    const already = existing?.restaurants?.some((r) => r.id === restaurant.id);
+
+    if (already) {
+      //removes it if already there
+      await db.collection('favorites').updateOne(
+        { userId: new ObjectId(userId) },
+        { $pull: { restaurants: { id: restaurant.id } } }
+      );
+      res.status(200).json({ message: 'Removed from favorites.' });
+    } else {
+      //add if not
+      await db.collection('favorites').updateOne(
+        { userId: new ObjectId(userId) },
+        { $push: { restaurants: restaurant } },
+        { upsert: true }
+      );
+      res.status(200).json({ message: 'Added to favorites.' });
+    }
+
+  } catch (error) {
+    console.error('Favorites toggle error:', error);
+    res.status(500).json({ error: 'Server error updating favorites.' });
+  }
+});
