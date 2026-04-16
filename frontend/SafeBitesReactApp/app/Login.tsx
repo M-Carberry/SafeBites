@@ -1,22 +1,58 @@
-import { StyleSheet, Text, View, Pressable, Image, TextInput, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, Image, TextInput, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Colors } from "../styles/colors";
+import { API_BASE_URL } from "../constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { KeyboardAvoidingView,Platform } from "react-native";
 
 
 export default function Login() {
   const router = useRouter();
 
-  const [Username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [loading, setLoading] = useState(false);
 
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert("Error", "Please enter your email and password.");
+    return;
+  }
 
-  const handleLogin = () => {
+  setLoading(true);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      Alert.alert("Login Failed", data.error || "Something went wrong. :(");
+      return;
+    }
+
+    await AsyncStorage.setItem("userId", data.userId.toString());
+    await AsyncStorage.setItem("userName", data.name);
+
     router.push("/main_dashboard");
-  };
+
+  } catch (err) {
+    Alert.alert("Error", "Could not reach the server. Check connection.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView 
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{flex:1}}>
+      <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.top}>
         <Image
           source={require("../assets/images/SafeBitesLogo.png")}
@@ -29,10 +65,10 @@ export default function Login() {
         <Text style={styles.title}>Login</Text>
         <TextInput
           style={styles.input}
-          placeholder="Name"
+          placeholder="Email"
           placeholderTextColor={"#674f5d"}
-          value={Username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
         />
         <TextInput
@@ -48,8 +84,11 @@ export default function Login() {
           <Text style={styles.forgot}>Forgot Password?</Text>
         </Pressable>
 
-        <Pressable style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Login</Text>
+        <Pressable style={styles.button} onPress={handleLogin} disabled={loading}>
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.buttonText}>Login</Text>
+          }
         </Pressable>
       </View>
 
@@ -62,7 +101,10 @@ export default function Login() {
         </Text>
       </View>
     </ScrollView>
+
+    </KeyboardAvoidingView>
   );
+    
 }
 
 const styles = StyleSheet.create({

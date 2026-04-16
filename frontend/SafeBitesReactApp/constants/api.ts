@@ -1,0 +1,1 @@
+export const API_BASE_URL = "https://safebites-03ek.onrender.com";
