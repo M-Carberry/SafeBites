@@ -13,15 +13,22 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 //these are for the icons of back arrow, heart one, and the stars for the review section
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useFavorites } from "@/context/userFavorites";
+
 
 //these will be functional later for the nav back button, then the review handling etc.
 export default function RestProfile() {
   const router = useRouter();
   const [reviewText, setReviewText] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
+  const { toggleFav, isFav } = useFavorites();
 
   // PLACEHOLDER as this will be later be gathered from backend
   const restaurant = {
+    id:"6",
+    route: "/restaurantprof_purple",
+    type: "Vegan Kitchen",
+    image: require("../assets/images/purple.jpg"),
     name: "Purple Ocean Superfood Bar",
     cuisine: "Vegan kitchen",
     distance: "2.6 mi",
@@ -32,15 +39,14 @@ export default function RestProfile() {
     about:
       "Purple Ocean Superfood Bar serves vegan bowls, smoothies, and fresh superfoods.",
     website: "www.purpleoceansfb.com/",
-    phone: "407-000-000",
-    address: "000 address, Orlando FL 32000",
+    address: "12715 Pegasus Dr, Orlando, FL 32816 (UCF Student Union)",
     hours: [
-      "Monday: 11:00 AM – 9:00 PM",
-      "Tuesday: 11:00 AM – 9:00 PM",
-      "Wednesday: 11:00 AM – 9:00 PM",
-      "Thursday: 11:00 AM – 10:00 PM",
-      "Friday: 11:00 AM – 10:00 PM",
-      "Saturday: 12:00 AM – 10:00 PM",
+      "Monday: 9:00 AM – 6:00 PM",
+      "Tuesday: 9:00 AM – 6:00 PM",
+      "Wednesday: 9:00 AM – 6:00 PM",
+      "Thursday: 9:00 AM – 6:00 PM",
+      "Friday: 9:00 AM – 6:00 PM",
+      "Saturday: Closed",
       "Sunday: Closed",
     ],
     bestForYou: [
@@ -100,9 +106,15 @@ export default function RestProfile() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#674F5D" />
           </Pressable>
-          <Pressable style={styles.favBtn}>
-            <Ionicons name="heart-outline" size={28} color="#674F5D" />
-            <Text style={styles.favText}>Add to{"\n"}favorites</Text>
+          <Pressable style={styles.favBtn} onPress={() => toggleFav(restaurant)}>
+            <Ionicons
+              name={isFav(restaurant.id) ? "heart" : "heart-outline"}
+              size={28}
+              color="#674F5D"
+            />
+            <Text style={styles.favText}>
+              {isFav(restaurant.id) ? "Favorited!" : "Add to\nfavorites"}
+            </Text>
           </Pressable>
         </View>
 
@@ -185,7 +197,6 @@ export default function RestProfile() {
           <Text style={styles.bodyText}>{restaurant.about}</Text>
 
           <Text style={styles.bodyText}>{restaurant.website}</Text>
-          <Text style={styles.bodyText}>{restaurant.phone}</Text>
           <Text style={styles.bodyText}>{restaurant.address}</Text>
         </View>
 

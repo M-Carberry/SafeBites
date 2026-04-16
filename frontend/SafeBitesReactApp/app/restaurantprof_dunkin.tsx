@@ -13,15 +13,22 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 //these are for the icons of back arrow, heart one, and the stars for the review section
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useFavorites } from "@/context/userFavorites";
+
 
 //these will be functional later for the nav back button, then the review handling etc.
 export default function RestProfile() {
   const router = useRouter();
   const [reviewText, setReviewText] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
+  const { toggleFav, isFav } = useFavorites();
 
   // PLACEHOLDER as this will be later be gathered from backend
   const restaurant = {
+    id:"5",
+    route: "/restaurantprof_dunkin",
+    type: "American Cafe",
+    image: require("../assets/images/dunkin.jpg"),
     name: "Dunkin Donuts",
     cuisine: "American cafe style food",
     distance: "2 mi",
@@ -32,16 +39,16 @@ export default function RestProfile() {
     about:
       "Dunkin' serves coffee, donuts, breakfast sandwiches, and quick on-the-go snacks.",
     website: "www.dunkindonuts.com/en",
-    phone: "407-000-000",
-    address: "000 address, Orlando FL 32000",
+    phone: "(407) 882-3688",
+    address: "4210 W Plaza Dr, Orlando, FL 32816",
     hours: [
-      "Monday: 11:00 AM – 9:00 PM",
-      "Tuesday: 11:00 AM – 9:00 PM",
-      "Wednesday: 11:00 AM – 9:00 PM",
-      "Thursday: 11:00 AM – 10:00 PM",
-      "Friday: 11:00 AM – 10:00 PM",
-      "Saturday: 12:00 AM – 10:00 PM",
-      "Sunday: Closed",
+      "Monday: 6:00 AM – 8:00 PM",
+      "Tuesday: 6:00 AM – 8:00 PM",
+      "Wednesday: 6:00 AM – 8:00 PM",
+      "Thursday: 6:00 AM – 8:00 PM",
+      "Friday: 6:00 AM – 8:00 PM",
+      "Saturday: 7:00 AM – 8:00 PM",
+      "Sunday: 7:00 AM - 5:00 PM",
     ],
     bestForYou: [
       { name: "Egg & Cheese Sandwich", image: require("../assets/images/eggcheesesandwhich.jpg") },
@@ -100,10 +107,16 @@ export default function RestProfile() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#674F5D" />
           </Pressable>
-          <Pressable style={styles.favBtn}>
-            <Ionicons name="heart-outline" size={28} color="#674F5D" />
-            <Text style={styles.favText}>Add to{"\n"}favorites</Text>
-          </Pressable>
+          <Pressable style={styles.favBtn} onPress={() => toggleFav(restaurant)}>
+          <Ionicons
+            name={isFav(restaurant.id) ? "heart" : "heart-outline"}
+            size={28}
+            color="#674F5D"
+          />
+          <Text style={styles.favText}>
+            {isFav(restaurant.id) ? "Favorited!" : "Add to\nfavorites"}
+          </Text>
+        </Pressable>
         </View>
 
         {/*RESTAURANT IMAGE*/}

@@ -3,10 +3,12 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient"; // added this for the gradient behind by camii
 import DiscoverFilter from "./Discover_filter"; //now this goes properly to filter screen cami
+import { useFavorites } from "../context/userFavorites";
 
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false);
+    const { isFav } = useFavorites();
 
   const restaurants = [
     {
@@ -105,23 +107,21 @@ export default function Discover() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={()=>router.push(item.route as any)}>
+          <Pressable style={styles.card} onPress={() => router.push(item.route as any)}>
             <Image source={item.image} style={styles.cardImage} />
-
             <Text style={styles.restaurantName}>{item.name}</Text>
             <Text style={styles.restaurantType}>{item.type}</Text>
             <Text style={styles.distance}>{item.distance}</Text>
           </Pressable>
         )}
       />
-
       {/* fixed by cami - added gradient behind search bar and navbar */}
       {/* and also gradient white, 0% opacity top to 100% opacity bottom, 278px height */}
       <LinearGradient
         colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
         style={styles.bottomGradient}
       >
-        <Pressable onPress={()=>router.push("/keyboard")} style={styles.searchFloating}>
+        <Pressable onPress={() => router.push("/keyboard")} style={styles.searchFloating}>
           <Image
             source={require("../assets/images/search.png")}
             style={styles.searchIcon}
@@ -131,24 +131,13 @@ export default function Discover() {
 
         <View style={styles.navBar}>
           <Pressable onPress={() => router.push("/main_dashboard")}>
-            <Image
-              source={require("../assets/images/house.png")}
-              style={styles.navIcon}
-            />
+            <Image source={require("../assets/images/house.png")} style={styles.navIcon} />
           </Pressable>
-
           <Pressable onPress={() => router.push("/Discover")}>
-            <Image
-              source={require("../assets/images/compass.png")}
-              style={styles.navIcon}
-            />
+            <Image source={require("../assets/images/compass.png")} style={styles.navIcon} />
           </Pressable>
-
           <Pressable onPress={() => router.push("/favorites")}>
-            <Image
-              source={require("../assets/images/heart.png")}
-              style={styles.navIcon}
-            />
+            <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
           </Pressable>
         </View>
       </LinearGradient>

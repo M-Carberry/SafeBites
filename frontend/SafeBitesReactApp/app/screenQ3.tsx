@@ -37,24 +37,19 @@ export default function Q3Answers() {
 
 React.useEffect(() => {
   if (preferences.strictness?.length) {
-    setSelectedValues(preferences.strictness);
+    setSelectedValues([preferences.strictness[0]]);
   }
 }, [preferences.strictness]);
 
-  /* manages the checkbox selection values */
+  /*changed to just one value */
   const toggleValue = (item) => {
-    const updatedValues = selectedValues.includes(item)
-      ? selectedValues.filter((v) => v !== item)
-      : [...selectedValues, item];
+  setSelectedValues([item]);
+};
 
-    setSelectedValues(updatedValues); 
-   
-  };
-
-  const handleNext = () => {
-    updatePreference("strictness", selectedValues);
-    router.push("/screenQ4");
-  };
+const handleNext = () => {
+  updatePreference("strictness", selectedValues[0] || "");
+  router.push("/screenQ4");
+};
 
   return (
       <View style={styles.container}>

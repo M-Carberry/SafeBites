@@ -13,15 +13,22 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 //these are for the icons of back arrow, heart one, and the stars for the review section
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useFavorites } from "@/context/userFavorites";
+
 
 //these will be functional later for the nav back button, then the review handling etc.
 export default function RestProfile() {
   const router = useRouter();
   const [reviewText, setReviewText] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
+  const { toggleFav, isFav } = useFavorites();
 
   // PLACEHOLDER as this will be later be gathered from backend
   const restaurant = {
+    id:"2",
+    route: "/restaurantprof_qdoba",
+    type: "Mexican Food",
+    image: require("../assets/images/qdoba.jpg"),
     name: "Qdoba Mexican",
     cuisine: "Mexican Food",
     distance: "0.7 mi",
@@ -100,10 +107,16 @@ export default function RestProfile() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#674F5D" />
           </Pressable>
-          <Pressable style={styles.favBtn}>
-            <Ionicons name="heart-outline" size={28} color="#674F5D" />
-            <Text style={styles.favText}>Add to{"\n"}favorites</Text>
-          </Pressable>
+          <Pressable style={styles.favBtn} onPress={() => toggleFav(restaurant)}>
+          <Ionicons
+            name={isFav(restaurant.id) ? "heart" : "heart-outline"}
+            size={28}
+            color="#674F5D"
+          />
+          <Text style={styles.favText}>
+            {isFav(restaurant.id) ? "Favorited!" : "Add to\nfavorites"}
+          </Text>
+        </Pressable>
         </View>
 
         {/*RESTAURANT IMAGE*/}

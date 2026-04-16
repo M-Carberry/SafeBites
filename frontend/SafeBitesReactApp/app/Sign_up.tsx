@@ -43,6 +43,7 @@ const handleSignUp = async () => {
 
     await AsyncStorage.setItem("userId", data.userId.toString());
     await AsyncStorage.setItem("userName", name);
+    await AsyncStorage.removeItem("userPreferences");
 
     Alert.alert("Success", "Account created!");
     router.push("/screening");
