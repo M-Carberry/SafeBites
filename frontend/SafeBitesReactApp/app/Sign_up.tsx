@@ -1,8 +1,10 @@
-import { StyleSheet, Text, View, Pressable, Image, TextInput, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, Image, TextInput, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Colors } from "../styles/colors";
-
+import { API_BASE_URL } from "../constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { KeyboardAvoidingView,Platform } from "react-native";
 
 export default function SignUp() {
   const router = useRouter();
@@ -11,14 +13,54 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+ 
+const handleSignUp = async () => {
+  if (!name || !email || !password || !confirmPassword) {
+    Alert.alert("Error", "Please fill in all fields.");
+    return;
+  }
+  if (password !== confirmPassword) {
+    Alert.alert("Error", "Passwords do not match.");
+    return;
+  }
 
-  const handleSignUp = () => {
-    //For Main Dashboard
-  router.push("/screening");
-  };
+  setLoading(true);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      Alert.alert("Signup Failed", data.error || "Something went wrong. :(");
+      return;
+    }
+
+
+    await AsyncStorage.setItem("userId", data.userId.toString());
+    await AsyncStorage.setItem("userName", name);
+
+    Alert.alert("Success", "Account created!");
+    router.push("/screening");
+
+  } catch (err) {
+    Alert.alert("Error", "Could not reach the server. Check connection.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView 
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{flex:1}}>
+    <ScrollView contentContainerStyle={styles.container} 
+    keyboardShouldPersistTaps="handled">
       <View style={styles.top}>
         <Image
           source={require("../assets/images/SafeBitesLogo.png")}
@@ -62,8 +104,11 @@ export default function SignUp() {
           secureTextEntry
         />
   <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+          <Pressable style={styles.button} onPress={handleSignUp} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>Sign Up</Text>
+            }
           </Pressable>
   </View>
 
@@ -78,6 +123,8 @@ export default function SignUp() {
         </Text>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
+
   );
 }
 
