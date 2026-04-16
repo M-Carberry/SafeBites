@@ -11,21 +11,21 @@ export default function AccountInfo() {
   //for searchbar
   const [searchQuery, setSearchQuery] = useState('');
   const suggestions = [
-      "Bento",
-      "Chick-fil-a",
-      "Dunkin",
-      "Einstein Bagel Bros",
-      "Halal Shack",
-      "Huey Magoos",
-      "Panda Express",
-      "Purple Ocean",
-      "Qdoba",
-      "Starbucks",
+    { name: "Bento",             path: "/restaurantprof_bento" },
+    { name: "Chick-fil-a",       path: "/restaurantprof_chickfila" },
+    { name: "Dunkin",            path: "/restaurantprof_dunkin" },
+    { name: "Einstein Bagel Bros", path: "/restaurantprof_einstein" },
+    { name: "Halal Shack",       path: "/restaurantprof_halal" },
+    { name: "Huey Magoos",       path: "/restaurantprof_huey" },
+    { name: "Panda Express",     path: "/restaurantprof_panda" },
+    { name: "Purple Ocean",      path: "/restaurantprof_purple" },
+    { name: "Qdoba",             path: "/restaurantprof_qdoba" },
+    { name: "Starbucks",         path: "/restaurantsprof_starbucks" },
   ];
 
 const filtered = suggestions
-  .filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
-  .slice(0, 3);
+  .filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  .slice(0, 5);
   
   return (
     <PaperProvider>
@@ -42,15 +42,16 @@ const filtered = suggestions
           </Pressable>
         </View>
 
-      {filtered.map((item, index) => (
-        <View key={index} style={styles.clicky}>
-          <Image
-            source={require("../assets/images/search.png")}
-            style={styles.searchy}
-          />
-          <Text style={styles.restSug}>{item}</Text>
-        </View>
-      ))}
+        {filtered.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={() => router.push(item.path)}
+            style={({ pressed }) => [styles.clicky, pressed && { opacity: 0.6 }]}
+          >
+            <Image source={require("../assets/images/search.png")} style={styles.searchy} />
+            <Text style={styles.restSug}>{item.name}</Text>
+          </Pressable>
+        ))}
 
       <View style={styles.searchSpacing}>
         <Searchbar 
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
     tintColor:"#FFF8F3",
   },
   searchFloating: {
+    color: "#674f5d",
     backgroundColor: "#FFF8F3",
     borderRadius: 26,
     width: "100%",
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
 },
 
   searchSpacing: {
+  color: "#674f5d",
   position: "absolute",
   bottom: 360,
   alignSelf: "center",
