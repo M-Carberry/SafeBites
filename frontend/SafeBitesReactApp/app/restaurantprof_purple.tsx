@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 //these are for the icons of back arrow, heart one, and the stars for the review section
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Linking } from 'react-native';
 
 //these will be functional later for the nav back button, then the review handling etc.
 export default function RestProfile() {
@@ -243,10 +244,10 @@ export default function RestProfile() {
 
       {/* STICKY BUTTONS at bottom */}
       <View style={styles.stickyBtns}>
-        <Pressable style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Go to{"\n"}restaurant</Text>
-        </Pressable>
-        <Pressable style={styles.actionButton}>
+        <Pressable 
+          style={styles.actionButton}
+          onPress={() => Linking.openURL('https://www.purpleoceansfb.com/purple-ocean-menu')}
+        >
           <Text style={styles.actionButtonText}>See full{"\n"}menu</Text>
         </Pressable>
       </View>
