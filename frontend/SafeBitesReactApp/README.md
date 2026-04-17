@@ -1,5 +1,11 @@
 # Welcome to your Expo app 👋
 
+# IMPORTANT NOTE!
+SafeBites is designed as a mobile application and is best experienced through Andriod, IOS, or Expo Go
+
+Note: The map feature requires native device location services
+and are NOT supported on web browsers.
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
