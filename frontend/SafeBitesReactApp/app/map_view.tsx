@@ -1,10 +1,9 @@
 import { StyleSheet, Text, View, Pressable, Image, ScrollView, Modal } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DiscoverFilter from "./Discover_filter";
-import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
-import { useEffect } from "react"; 
+import MapWrapper from "../components/MapWrapper";
 
 export default function Discover() {
   const router = useRouter();
@@ -54,24 +53,7 @@ export default function Discover() {
       {/*map*/}
       <View style={styles.mapContainer}>
         {location ? (
-          <MapView
-            style={styles.map}
-            showsUserLocation={true}
-            region={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: location.latitude,
-                longitude: location.longitude,
-              }}
-              title="You are here!"
-            />
-          </MapView>
+          <MapWrapper latitude={location.latitude} longitude={location.longitude} />
         ) : (
           <Text>Map loading</Text>
         )}
