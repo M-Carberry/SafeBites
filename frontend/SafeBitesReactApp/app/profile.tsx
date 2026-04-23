@@ -27,8 +27,11 @@ export default function Profile() {
     <PaperProvider>
       <View style={styles.container}>
 
-        <View style={styles.body}>
+        <View style={[styles.body, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
           <Text style={styles.header}>My Profile</Text>
+          <Pressable onPress={() => router.push('/main_dashboard')}>
+            <Image source={require("../assets/images/back.png")} style={styles.editBack} />
+          </Pressable>
         </View>
 
         <View style={styles.icon}>
@@ -50,12 +53,12 @@ export default function Profile() {
           </Pressable>
         </View>
 
-        <View style={styles.navigation}>
+        {/*<View style={styles.navigation}>
           <Pressable onPress={() => router.push('/appearance')}>
             <Text style={styles.descText}>Appearance &gt;</Text>
           </Pressable>
         </View>
-
+        */}
         {/* Logout Button */}
         <View style={styles.nextButton}>
           <Pressable onPress={handleLogout}>
@@ -101,6 +104,7 @@ const styles = StyleSheet.create({
   body: {
     paddingLeft: 20,
     paddingBottom: 20,
+    paddingTop:20,
   },
    descText: {
     paddingLeft: 20,
@@ -109,6 +113,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     alignItems: "left",
   },
+  editBack: {
+ width:28,
+height:28,
+tintColor:"#674F5D",
+marginRight:30,
+},
+editImage: {
+  width: 35,
+  height: 35,
+  tintColor:"#674F5D",
+},
   //checkmark icon
   icon: {
     paddingTop: 30,
@@ -122,7 +137,8 @@ const styles = StyleSheet.create({
   navigation: {
     color: '#FFFAF0',
     fontSize: 20,
-    padding: 10,
+    padding: 15,
+    paddingTop:20,
   },
   // Button Container
   nextButton: {
@@ -133,6 +149,7 @@ const styles = StyleSheet.create({
     color: '#FFFAF0',
     fontSize: 20,
     padding: 10,
+    marginTop:20,
   },
 
   // Button Colors

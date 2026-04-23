@@ -5,6 +5,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import DiscoverFilter from "./Discover_filter";
 import { useFavorites } from "../context/userFavorites";
 import * as Location from "expo-location";
+import { ALL_RESTAURANTS } from "../constants/restaurantData";
+import { sortByMatch, getMatchLabel, getMatchScore } from "../constants/scoreMatch";
+import { useUserPreferences } from "../context/UserPreferenceContext";
 
 //haversine formula to calculate distance between two coordinates from miles
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -22,7 +25,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 //Open now checker
 function openNow(hours: string[]) {
   const now = new Date();
-  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const today = days[now.getDay()];
   const todayLine = hours.find((h) => h.startsWith(today));
   if (!todayLine || todayLine.includes("Closed")) return false;
@@ -42,209 +45,6 @@ function openNow(hours: string[]) {
   return current >= toMinutes(match[1]) && current <= toMinutes(match[2]);
 }
 
-const ALL_RESTAURANTS = [
-  {
-    id: "1",
-    name: "Chick-Fil-A - JTW Center",
-    type: "American fast food",
-    image: require("../assets/images/chickfila.jpg"),
-    route: "/restaurantprof_chickfila",
-    latitude: 28.5960,
-    longitude: -81.1988,
-    rating: 3.7,
-    price: 1,
-    hours: [
-      "Monday: 7:30 AM – 8:00 PM",
-      "Tuesday: 7:30 AM – 8:00 PM",
-      "Wednesday: 7:30 AM – 8:00 PM",
-      "Thursday: 7:30 AM – 8:00 PM",
-      "Friday: 7:30 AM – 5:00 PM",
-      "Saturday: 11:00 AM – 4:00 PM",
-      "Sunday: Closed",
-    ],
-  },
-  {
-    id: "2",
-    name: "Qdoba",
-    type: "Mexican food",
-    image: require("../assets/images/qdoba.jpg"),
-    route: "/restaurantprof_qdoba",
-    latitude: 28.5480,
-    longitude: -81.3876,
-    rating: 3.9,
-    price: 1,
-    hours: [
-      "Monday: 10:30 AM – 9:00 PM",
-      "Tuesday: 10:30 AM – 9:00 PM",
-      "Wednesday: 10:30 AM – 9:00 PM",
-      "Thursday: 10:30 AM – 9:00 PM",
-      "Friday: 10:30 AM – 9:00 PM",
-      "Saturday: 10:30 AM – 9:00 PM",
-      "Sunday: 11:00 AM – 8:00 PM",
-    ],
-  },
-  {
-    id: "3",
-    name: "Huey Magoos",
-    type: "American fast food",
-    image: require("../assets/images/huey.jpg"),
-    route: "/restaurantprof_huey",
-    latitude: 28.6125,
-    longitude: -81.2084,
-    rating: 3.2,
-    price: 1,
-    hours: [
-      "Monday: 10:30 AM – 11:00 PM",
-      "Tuesday: 10:30 AM – 11:00 PM",
-      "Wednesday: 10:30 AM – 11:00 PM",
-      "Thursday: 10:30 AM – 11:00 PM",
-      "Friday: 10:30 AM – 11:00 PM",
-      "Saturday: 10:30 AM – 11:00 PM",
-      "Sunday: 10:30 AM – 11:00 PM",
-    ],
-  },
-  {
-    id: "4",
-    name: "Panda Express",
-    type: "Chinese fast food",
-    image: require("../assets/images/panda.jpeg"),
-    route: "/restaurantprof_panda",
-    latitude: 28.6022,
-    longitude: -81.2004,
-    rating: 4,
-    price: 1,
-    hours: [
-      "Monday: 11:00 AM – 8:00 PM",
-      "Tuesday: 11:00 AM – 8:00 PM",
-      "Wednesday: 11:00 AM – 8:00 PM",
-      "Thursday: 11:00 AM – 8:00 PM",
-      "Friday: 11:00 AM – 6:00 PM",
-      "Saturday: Closed",
-      "Sunday: Closed",
-    ],
-  },
-  {
-    id: "5",
-    name: "Dunkin Donuts",
-    type: "American Cafe",
-    image: require("../assets/images/dunkin.jpg"),
-    route: "/restaurantprof_dunkin",
-    latitude: 28.6068,
-    longitude: -81.1986,
-    rating: 2.8,
-    price: 1,
-    hours: [
-      "Monday: 6:00 AM – 8:00 PM",
-      "Tuesday: 6:00 AM – 8:00 PM",
-      "Wednesday: 6:00 AM – 8:00 PM",
-      "Thursday: 6:00 AM – 8:00 PM",
-      "Friday: 6:00 AM – 8:00 PM",
-      "Saturday: 7:00 AM – 8:00 PM",
-      "Sunday: 7:00 AM – 5:00 PM",
-    ],
-  },
-  {
-    id: "6",
-    name: "Purple Ocean Superfood Bar",
-    type: "Vegan Kitchen",
-    image: require("../assets/images/purple.jpg"),
-    route: "/restaurantprof_purple",
-    latitude: 28.6020,
-    longitude: -81.2007,
-    rating: 3.5,
-    price: 2,
-    hours: [
-      "Monday: 9:00 AM – 6:00 PM",
-      "Tuesday: 9:00 AM – 6:00 PM",
-      "Wednesday: 9:00 AM – 6:00 PM",
-      "Thursday: 9:00 AM – 6:00 PM",
-      "Friday: 9:00 AM – 6:00 PM",
-      "Saturday: Closed",
-      "Sunday: Closed",
-    ],
-  },
-  {
-    id: "10",
-    name: "Bento Asian Kitchen",
-    type: "Asian Fusion",
-    image: require("../assets/images/bentoasian.jpeg"),
-    route: "/restaurantprof_bento",
-    latitude: 28.6018,
-    longitude: -81.2010,
-    rating: 3.1,
-    price: 1,
-    hours: [
-      "Monday: 11:00 AM – 8:00 PM",
-      "Tuesday: 11:00 AM – 8:00 PM",
-      "Wednesday: 11:00 AM – 8:00 PM",
-      "Thursday: 11:00 AM – 8:00 PM",
-      "Friday: 11:00 AM – 8:00 PM",
-      "Saturday: 11:00 AM – 6:00 PM",
-      "Sunday: 11:00 AM – 6:00 PM",
-    ],
-  },
-  {
-    id: "9",
-    name: "Einstein Bros. Bagels",
-    type: "Cafe & Bakery",
-    image: require("../assets/images/einsteinbros.jpeg"),
-    route: "/restaurantprof_einstein",
-    latitude: 28.6009,
-    longitude: -81.1993,
-    rating: 3.1,
-    price: 1,
-    hours: [
-      "Monday: Closed",
-      "Tuesday: 9:00 AM – 4:00 PM",
-      "Wednesday: 9:00 AM – 4:00 PM",
-      "Thursday: 9:00 AM – 4:00 PM",
-      "Friday: 9:00 AM – 4:00 PM",
-      "Saturday: Closed",
-      "Sunday: Closed",
-    ],
-  },
-  {
-    id: "8",
-    name: "Halal Shack",
-    type: "Halal food",
-    image: require("../assets/images/thehalal.png"),
-    route: "/restaurantprof_halal",
-    latitude: 28.6016,
-    longitude: -81.2013,
-    rating: 3.7,
-    price: 1,
-    hours: [
-      "Monday: 11:00 AM – 8:00 PM",
-      "Tuesday: 11:00 AM – 8:00 PM",
-      "Wednesday: 11:00 AM – 8:00 PM",
-      "Thursday: 11:00 AM – 8:00 PM",
-      "Friday: 11:00 AM – 6:00 PM",
-      "Saturday: Closed",
-      "Sunday: Closed",
-    ],
-  },
-  {
-    id: "7",
-    name: "Starbucks",
-    type: "Coffee & Drinks",
-    image: require("../assets/images/starbucks.webp"),
-    route: "/restaurantprof_starbucks",
-    latitude: 28.6033,
-    longitude: -81.1989,
-    rating: 3.8,
-    price: 2,
-    hours: [
-      "Monday: 7:30 AM – 5:00 PM",
-      "Tuesday: 7:30 AM – 5:00 PM",
-      "Wednesday: 7:30 AM – 5:00 PM",
-      "Thursday: 7:30 AM – 5:00 PM",
-      "Friday: 7:30 AM – 4:00 PM",
-      "Saturday: Closed",
-      "Sunday: Closed",
-    ],
-  },
-];
-
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false);
@@ -252,6 +52,7 @@ export default function Discover() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [restaurants, setRestaurants] = useState(ALL_RESTAURANTS);
+  const { preferences } = useUserPreferences();
 
   //gets users location
   useEffect(() => {
@@ -269,7 +70,7 @@ export default function Discover() {
   }, [activeFilter, userLocation]);
 
   const applyFilter = (filter: string | null) => {
-    let sorted = [...ALL_RESTAURANTS];
+    let sorted = sortByMatch([...ALL_RESTAURANTS], preferences);
 
     if (filter === "Nearby" && userLocation) {
       sorted.sort((a, b) => {
@@ -347,14 +148,23 @@ export default function Discover() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => router.push(item.route as any)}>
-            <Image source={item.image} style={styles.cardImage} />
-            <Text style={styles.restaurantName}>{item.name}</Text>
-            <Text style={styles.restaurantType}>{item.type}</Text>
-            <Text style={styles.distance}>{getDisplayDistance(item)}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const score = getMatchScore(item, preferences);
+          const { label, color, borderColor } = getMatchLabel(score);
+
+          return (
+            <Pressable style={styles.card} onPress={() => router.push(item.route as any)}>
+              <Image source={item.image} style={styles.cardImage} />
+              {/*match badge*/}
+              <View style={[styles.matchBadge, { backgroundColor: color, borderColor: borderColor, borderWidth: 1.5 }]}>
+                <Text style={styles.matchBadgeText}>{label}</Text>
+              </View>
+              <Text style={styles.restaurantName}>{item.name}</Text>
+              <Text style={styles.restaurantType}>{item.type}</Text>
+              <Text style={styles.distance}>{getDisplayDistance(item)}</Text>
+            </Pressable>
+          );
+        }}
       />
 
       <LinearGradient
@@ -463,7 +273,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
-
+  matchBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 5,
+  },
+  matchBadgeText: {
+    fontSize: 11,
+    color: "#FFFFFF",
+    fontFamily: "Quicksand-SemiBold",
+  },
   card: {
     backgroundColor: "#FFF8F3",
     borderRadius: 22,

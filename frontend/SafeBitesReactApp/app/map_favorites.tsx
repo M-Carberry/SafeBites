@@ -130,6 +130,9 @@ export default function Discover() {
             style={styles.navIcon}
           />
         </Pressable>
+        <Pressable onPress={() => router.push("/profile")}>
+          <Image source={require("../assets/images/profilepic.jpg")} style={styles.navIcon} />
+        </Pressable>
       </View>
 
       {/* fixed by camfilter popup overlay */}
