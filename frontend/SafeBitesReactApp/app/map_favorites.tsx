@@ -1,10 +1,9 @@
 import { StyleSheet, Text, View, Pressable, Image, ScrollView, Modal } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DiscoverFilter from "./Discover_filter";
-import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
-import { useEffect } from "react"; 
+import MapWrapper from "../components/MapWrapper";
 
 
 const RESTAURANTS = [
@@ -95,8 +94,9 @@ export default function Discover() {
               />
             ))}
           </MapView>
+          <MapWrapper latitude={location.latitude} longitude={location.longitude} />
         ) : (
-          <Text>Map loading</Text>
+          <Text>Map loading...</Text>
         )}
       </View>
 

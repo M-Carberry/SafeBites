@@ -9,4 +9,4 @@ RUN npm install react-native-maps
 RUN npm install -g @expo/ngrok@^4.1.0
 RUN npx expo install react-native-maps expo-location
 
-CMD ["npx", "expo", "start", "--tunnel"]
+CMD ["npx", "expo", "start"]
