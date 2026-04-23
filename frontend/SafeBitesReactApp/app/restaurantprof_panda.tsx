@@ -39,15 +39,14 @@ export default function RestProfile() {
     about:
       "Panda Express serves American Chinese dishes like orange chicken and bowls.",
     website: "www.pandaexpress.com",
-    phone: "407-000-000",
-    address: "000 address, Orlando FL 32000",
+    address: "12715 Pegasus Dr, Orlando, FL 32826 UCF Student Union",
     hours: [
-      "Monday: 11:00 AM – 9:00 PM",
-      "Tuesday: 11:00 AM – 9:00 PM",
-      "Wednesday: 11:00 AM – 9:00 PM",
-      "Thursday: 11:00 AM – 10:00 PM",
-      "Friday: 11:00 AM – 10:00 PM",
-      "Saturday: 12:00 AM – 10:00 PM",
+      "Monday: 11:00 AM – 8:00 PM",
+      "Tuesday: 11:00 AM – 8:00 PM",
+      "Wednesday: 11:00 AM – 8:00 PM",
+      "Thursday: 11:00 AM – 8:00 PM",
+      "Friday: 11:00 AM – 6:00 PM",
+      "Saturday: Closed",
       "Sunday: Closed",
     ],
     bestForYou: [
@@ -198,7 +197,6 @@ export default function RestProfile() {
           <Text style={styles.bodyText}>{restaurant.about}</Text>
 
           <Text style={styles.bodyText}>{restaurant.website}</Text>
-          <Text style={styles.bodyText}>{restaurant.phone}</Text>
           <Text style={styles.bodyText}>{restaurant.address}</Text>
         </View>
 

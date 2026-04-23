@@ -33,7 +33,7 @@ export default function Profile() {
 
         <View style={styles.icon}>
           <Image
-            source={require("../assets/images/accSettingsPhoto.png")}
+            source={require("../assets/images/profilepic.jpg")}
             style={styles.profilepic}
           />
         </View>
@@ -74,6 +74,12 @@ export default function Profile() {
         <Pressable onPress={() => router.push("/favorites")}>
           <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
         </Pressable>
+        <Pressable onPress={() => router.push("/profile")}>
+                  <Image
+                    source={require("../assets/images/profilepic.jpg")}
+                    style={styles.navIcon}
+                  />
+                </Pressable>
       </View>
     </PaperProvider>
   );
@@ -142,6 +148,8 @@ const styles = StyleSheet.create({
     width: 125,
     height: 125,
     alignContent: 'center',
+    backgroundColor: "#c1a9c5",
+    borderRadius: 100,
   },
     navBar: {
     flexDirection: "row",

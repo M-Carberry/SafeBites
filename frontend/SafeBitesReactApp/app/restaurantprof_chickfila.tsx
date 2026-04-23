@@ -32,14 +32,14 @@ export default function RestProfile() {
     name: "Chick-Fil-A - JTW Center",
     cuisine: "American fast food",
     distance: "0.5 mi",
-    rating: 3.5,
+    rating: 3.7,
     reviewCount: "100+",
     price: "$",
-    tags: ["Omnivore", "Low-Fat"],
+    tags: ["Omnivore", "Vegetarian Options"],
     about:
       "American fast-food chain known for its chicken sandwiches and waffle fries.",
     website: "www.chick-fil-a.com",
-    phone: "407-000-000",
+    phone: "(407) 823-2238",
     address: "4115 Pyxis Lane, Orlando, FL 32816",
     hours: [
       "Monday: 7:30 AM – 8:00 PM",
