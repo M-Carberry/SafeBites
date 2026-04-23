@@ -62,7 +62,7 @@ React.useEffect(() => {
 
         {/* Header */}
         <View style={styles.headerContainer}>
-          <Pressable onPress={() => router.push('/main_dashboard')}>
+          <Pressable onPress={() => router.push('/profile')}>
             <Image source={require("../assets/images/back.png")} style={styles.editBack} />
           </Pressable>
         </View>

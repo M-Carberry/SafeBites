@@ -5,6 +5,22 @@ import DiscoverFilter from "./Discover_filter";
 import * as Location from "expo-location";
 import MapWrapper from "../components/MapWrapper";
 
+
+const RESTAURANTS = [
+  { id: "10", name: "Bento Asian Kitchen + Sushi", latitude: 28.6018, longitude: -81.2010, route: "/restaurantprof_bento" },
+  { id: "1", name: "Chick-fil-A", latitude: 28.6013, longitude: -81.2014, route: "/restaurantprof_chickfila" },
+  { id: "5", name: "Dunkin'", latitude: 28.6068, longitude: -81.1986, route: "/restaurantprof_dunkin" },
+  { id: "9", name: "Einstein Bros. Bagels", latitude: 28.6009, longitude: -81.1993, route: "/restaurantprof_einstein" },
+  { id: "8", name: "Halal Shack", latitude: 28.6021, longitude: -81.2000, route: "/restaurantprof_halal" },
+  { id: "3", name: "Huey Magoo's", latitude: 28.6125, longitude: -81.2084, route: "/restaurantprof_huey" },
+  { id: "4", name: "Panda Express", latitude: 28.6022, longitude: -81.2004, route: "/restaurantprof_panda" },
+  { id: "6", name: "Purple Ocean", latitude: 28.6020, longitude: -81.2007, route: "/restaurantprof_purpleocean" },
+  { id: "2", name: "Qdoba", latitude: 28.5480, longitude: -81.3876, route: "/restaurantprof_qdoba" },
+  { id: "7", name: "Starbucks", latitude: 28.6033, longitude: -81.1989, route: "/restaurantprof_starbucks" },
+];
+
+
+
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false); //state for filter popup added by Cams
@@ -53,6 +69,32 @@ export default function Discover() {
       {/*map*/}
       <View style={styles.mapContainer}>
         {location ? (
+          <MapView
+            style={styles.map}
+            showsUserLocation={true}
+            region={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: location.latitude, longitude: location.longitude }}
+              title="You are here!"
+            />
+
+            {/*pinned restaurants*/}
+            {RESTAURANTS.map((r) => (
+              <Marker
+                key={r.id}
+                coordinate={{ latitude: r.latitude, longitude: r.longitude }}
+                title={r.name}
+                pinColor="#6aa792"
+                onCalloutPress={() => router.push(r.route as any)}
+              />
+            ))}
+          </MapView>
           <MapWrapper latitude={location.latitude} longitude={location.longitude} />
         ) : (
           <Text>Map loading</Text>
@@ -86,6 +128,13 @@ export default function Discover() {
         <Pressable onPress={() => router.push("/favorites")}>
           <Image
             source={require("../assets/images/heart.png")}
+            style={styles.navIcon}
+          />
+        </Pressable>
+
+        <Pressable onPress={() => router.push("/profile")}>
+          <Image
+            source={require("../assets/images/profilepic.jpg")}
             style={styles.navIcon}
           />
         </Pressable>

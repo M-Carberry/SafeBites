@@ -1,101 +1,342 @@
 import { StyleSheet, Text, FlatList, View, Pressable, Image, ScrollView, Modal } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { LinearGradient } from "expo-linear-gradient"; // added this for the gradient behind by camii
-import DiscoverFilter from "./Discover_filter"; //now this goes properly to filter screen cami
+import { useState, useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import DiscoverFilter from "./Discover_filter";
 import { useFavorites } from "../context/userFavorites";
+import * as Location from "expo-location";
+
+//haversine formula to calculate distance between two coordinates from miles
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 3958.8;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+//Open now checker
+function openNow(hours: string[]) {
+  const now = new Date();
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const today = days[now.getDay()];
+  const todayLine = hours.find((h) => h.startsWith(today));
+  if (!todayLine || todayLine.includes("Closed")) return false;
+
+  const match = todayLine.match(/(\d+:\d+\s[AP]M)\s*–\s*(\d+:\d+\s[AP]M)/);
+  if (!match) return false;
+
+  const toMinutes = (t: string) => {
+    const [time, period] = t.split(" ");
+    let [h, m] = time.split(":").map(Number);
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  };
+
+  const current = now.getHours() * 60 + now.getMinutes();
+  return current >= toMinutes(match[1]) && current <= toMinutes(match[2]);
+}
+
+const ALL_RESTAURANTS = [
+  {
+    id: "1",
+    name: "Chick-Fil-A - JTW Center",
+    type: "American fast food",
+    image: require("../assets/images/chickfila.jpg"),
+    route: "/restaurantprof_chickfila",
+    latitude: 28.5960,
+    longitude: -81.1988,
+    rating: 3.7,
+    price: 1,
+    hours: [
+      "Monday: 7:30 AM – 8:00 PM",
+      "Tuesday: 7:30 AM – 8:00 PM",
+      "Wednesday: 7:30 AM – 8:00 PM",
+      "Thursday: 7:30 AM – 8:00 PM",
+      "Friday: 7:30 AM – 5:00 PM",
+      "Saturday: 11:00 AM – 4:00 PM",
+      "Sunday: Closed",
+    ],
+  },
+  {
+    id: "2",
+    name: "Qdoba",
+    type: "Mexican food",
+    image: require("../assets/images/qdoba.jpg"),
+    route: "/restaurantprof_qdoba",
+    latitude: 28.5480,
+    longitude: -81.3876,
+    rating: 3.9,
+    price: 1,
+    hours: [
+      "Monday: 10:30 AM – 9:00 PM",
+      "Tuesday: 10:30 AM – 9:00 PM",
+      "Wednesday: 10:30 AM – 9:00 PM",
+      "Thursday: 10:30 AM – 9:00 PM",
+      "Friday: 10:30 AM – 9:00 PM",
+      "Saturday: 10:30 AM – 9:00 PM",
+      "Sunday: 11:00 AM – 8:00 PM",
+    ],
+  },
+  {
+    id: "3",
+    name: "Huey Magoos",
+    type: "American fast food",
+    image: require("../assets/images/huey.jpg"),
+    route: "/restaurantprof_huey",
+    latitude: 28.6125,
+    longitude: -81.2084,
+    rating: 3.2,
+    price: 1,
+    hours: [
+      "Monday: 10:30 AM – 11:00 PM",
+      "Tuesday: 10:30 AM – 11:00 PM",
+      "Wednesday: 10:30 AM – 11:00 PM",
+      "Thursday: 10:30 AM – 11:00 PM",
+      "Friday: 10:30 AM – 11:00 PM",
+      "Saturday: 10:30 AM – 11:00 PM",
+      "Sunday: 10:30 AM – 11:00 PM",
+    ],
+  },
+  {
+    id: "4",
+    name: "Panda Express",
+    type: "Chinese fast food",
+    image: require("../assets/images/panda.jpeg"),
+    route: "/restaurantprof_panda",
+    latitude: 28.6022,
+    longitude: -81.2004,
+    rating: 4,
+    price: 1,
+    hours: [
+      "Monday: 11:00 AM – 8:00 PM",
+      "Tuesday: 11:00 AM – 8:00 PM",
+      "Wednesday: 11:00 AM – 8:00 PM",
+      "Thursday: 11:00 AM – 8:00 PM",
+      "Friday: 11:00 AM – 6:00 PM",
+      "Saturday: Closed",
+      "Sunday: Closed",
+    ],
+  },
+  {
+    id: "5",
+    name: "Dunkin Donuts",
+    type: "American Cafe",
+    image: require("../assets/images/dunkin.jpg"),
+    route: "/restaurantprof_dunkin",
+    latitude: 28.6068,
+    longitude: -81.1986,
+    rating: 2.8,
+    price: 1,
+    hours: [
+      "Monday: 6:00 AM – 8:00 PM",
+      "Tuesday: 6:00 AM – 8:00 PM",
+      "Wednesday: 6:00 AM – 8:00 PM",
+      "Thursday: 6:00 AM – 8:00 PM",
+      "Friday: 6:00 AM – 8:00 PM",
+      "Saturday: 7:00 AM – 8:00 PM",
+      "Sunday: 7:00 AM – 5:00 PM",
+    ],
+  },
+  {
+    id: "6",
+    name: "Purple Ocean Superfood Bar",
+    type: "Vegan Kitchen",
+    image: require("../assets/images/purple.jpg"),
+    route: "/restaurantprof_purple",
+    latitude: 28.6020,
+    longitude: -81.2007,
+    rating: 3.5,
+    price: 2,
+    hours: [
+      "Monday: 9:00 AM – 6:00 PM",
+      "Tuesday: 9:00 AM – 6:00 PM",
+      "Wednesday: 9:00 AM – 6:00 PM",
+      "Thursday: 9:00 AM – 6:00 PM",
+      "Friday: 9:00 AM – 6:00 PM",
+      "Saturday: Closed",
+      "Sunday: Closed",
+    ],
+  },
+  {
+    id: "10",
+    name: "Bento Asian Kitchen",
+    type: "Asian Fusion",
+    image: require("../assets/images/bentoasian.jpeg"),
+    route: "/restaurantprof_bento",
+    latitude: 28.6018,
+    longitude: -81.2010,
+    rating: 3.1,
+    price: 1,
+    hours: [
+      "Monday: 11:00 AM – 8:00 PM",
+      "Tuesday: 11:00 AM – 8:00 PM",
+      "Wednesday: 11:00 AM – 8:00 PM",
+      "Thursday: 11:00 AM – 8:00 PM",
+      "Friday: 11:00 AM – 8:00 PM",
+      "Saturday: 11:00 AM – 6:00 PM",
+      "Sunday: 11:00 AM – 6:00 PM",
+    ],
+  },
+  {
+    id: "9",
+    name: "Einstein Bros. Bagels",
+    type: "Cafe & Bakery",
+    image: require("../assets/images/einsteinbros.jpeg"),
+    route: "/restaurantprof_einstein",
+    latitude: 28.6009,
+    longitude: -81.1993,
+    rating: 3.1,
+    price: 1,
+    hours: [
+      "Monday: Closed",
+      "Tuesday: 9:00 AM – 4:00 PM",
+      "Wednesday: 9:00 AM – 4:00 PM",
+      "Thursday: 9:00 AM – 4:00 PM",
+      "Friday: 9:00 AM – 4:00 PM",
+      "Saturday: Closed",
+      "Sunday: Closed",
+    ],
+  },
+  {
+    id: "8",
+    name: "Halal Shack",
+    type: "Halal food",
+    image: require("../assets/images/thehalal.png"),
+    route: "/restaurantprof_halal",
+    latitude: 28.6016,
+    longitude: -81.2013,
+    rating: 3.7,
+    price: 1,
+    hours: [
+      "Monday: 11:00 AM – 8:00 PM",
+      "Tuesday: 11:00 AM – 8:00 PM",
+      "Wednesday: 11:00 AM – 8:00 PM",
+      "Thursday: 11:00 AM – 8:00 PM",
+      "Friday: 11:00 AM – 6:00 PM",
+      "Saturday: Closed",
+      "Sunday: Closed",
+    ],
+  },
+  {
+    id: "7",
+    name: "Starbucks",
+    type: "Coffee & Drinks",
+    image: require("../assets/images/starbucks.webp"),
+    route: "/restaurantprof_starbucks",
+    latitude: 28.6033,
+    longitude: -81.1989,
+    rating: 3.8,
+    price: 2,
+    hours: [
+      "Monday: 7:30 AM – 5:00 PM",
+      "Tuesday: 7:30 AM – 5:00 PM",
+      "Wednesday: 7:30 AM – 5:00 PM",
+      "Thursday: 7:30 AM – 5:00 PM",
+      "Friday: 7:30 AM – 4:00 PM",
+      "Saturday: Closed",
+      "Sunday: Closed",
+    ],
+  },
+];
 
 export default function Discover() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false);
-    const { isFav } = useFavorites();
+  const { isFav } = useFavorites();
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [restaurants, setRestaurants] = useState(ALL_RESTAURANTS);
 
-  const restaurants = [
-    {
-      id: "1",
-      name: "Chick-Fil-A",
-      type: "American fast food",
-      distance: "0.5 mi",
-      image: require("../assets/images/chickfila.jpg"),
-      route:"/restaurantprof_chickfila",
-    },
-    {
-      id: "2",
-      name: "Qdoba",
-      type: "Mexican food",
-      distance: "0.7 mi",
-      image: require("../assets/images/qdoba.jpg"),
-      route:"/restaurantprof_qdoba",
-    },
-    {
-      id: "3",
-      name: "Huey Magoos",
-      type: "American fast food",
-      distance: "0.7 mi",
-      image: require("../assets/images/huey.jpg"),
-      route:"/restaurantprof_huey",
-    },
-    {
-      id: "4",
-      name: "Panda Express",
-      type: "Chinese fast food",
-      distance: "1.1 mi",
-      image: require("../assets/images/panda.jpeg"),
-      route:"/restaurantprof_panda",
-    },
-    {
-      id: "5",
-      name: "Dunkin Donuts",
-      type: "American Cafe",
-      distance: "2 mi",
-      image: require("../assets/images/dunkin.jpg"),
-      route:"/restaurantprof_dunkin",
+  //gets users location
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const { coords } = await Location.getCurrentPositionAsync({});
+      setUserLocation(coords);
+    })();
+  }, []);
 
-    },
-    {
-      id: "6",
-      name: "Purple Ocean Superfood Bar",
-      type: "Vegan Kitchen",
-      distance: "2.6 mi",
-      image: require("../assets/images/purple.jpg"),
-      route:"/restaurantprof_purple",
-    },
-  ];
+  //re-apply filter whenever active filter or user location changes
+  useEffect(() => {
+    applyFilter(activeFilter);
+  }, [activeFilter, userLocation]);
+
+  const applyFilter = (filter: string | null) => {
+    let sorted = [...ALL_RESTAURANTS];
+
+    if (filter === "Nearby" && userLocation) {
+      sorted.sort((a, b) => {
+        const distA = calculateDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+        const distB = calculateDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+        return distA - distB;
+      });
+    } else if (filter === "Most popular") {
+      sorted.sort((a, b) => b.rating - a.rating);
+    } else if (filter === "Low price") {
+      sorted.sort((a, b) => a.price - b.price);
+    } else if (filter === "Open now") {
+      sorted = sorted.filter((r) => openNow(r.hours));
+    }
+
+    setRestaurants(sorted);
+  };
+
+  const handleFilter = (filter: string) => {
+    const next = activeFilter === filter ? null : filter;
+    setActiveFilter(next);
+  };
+
+  //shows the display distance string from user location
+  const getDisplayDistance = (r: typeof ALL_RESTAURANTS[0]) => {
+    if (!userLocation) return "";
+    const d = calculateDistance(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude);
+    return `${d.toFixed(1)} mi`;
+  };
 
   return (
     <View style={styles.container}>
 
       <View style={styles.topRow}>
         <Text style={styles.discoverTitle}>Discover</Text>
-
         <View style={styles.iconRow}>
           <Pressable onPress={() => router.push("/map_view")}>
-                <Image
-                    source={require("../assets/images/icon.png")}
-                    style={styles.topIcon}
-                />
-            </Pressable>
-          {/* fixed by cami - open filter popup overlay instead of navigation */}
-          <Pressable onPress={() => setShowFilter(true)}>
-            <Image
-            source={require("../assets/images/filter.png")}
-            style={styles.topIcon}
-          />
+            <Image source={require("../assets/images/icon.png")} style={styles.topIcon} />
           </Pressable>
-
+          <Pressable onPress={() => setShowFilter(true)}>
+            <Image source={require("../assets/images/filter.png")} style={styles.topIcon} />
+          </Pressable>
         </View>
       </View>
 
-      {/* filter */}
+      {/*filter buttons*/}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterRow}
       >
         {["Nearby", "Most popular", "Low price", "Open now"].map((item) => (
-          <View key={item} style={styles.filterButton}>
-            <Text style={styles.filterText}>{item}</Text>
-          </View>
+          <Pressable
+            key={item}
+            onPress={() => handleFilter(item)}
+            style={[
+              styles.filterButton,
+              activeFilter === item && styles.filterButtonActive,
+            ]}
+          >
+            <Text style={[
+              styles.filterText,
+              activeFilter === item && styles.filterTextActive,
+            ]}>
+              {item}
+            </Text>
+          </Pressable>
         ))}
       </ScrollView>
 
@@ -111,21 +352,17 @@ export default function Discover() {
             <Image source={item.image} style={styles.cardImage} />
             <Text style={styles.restaurantName}>{item.name}</Text>
             <Text style={styles.restaurantType}>{item.type}</Text>
-            <Text style={styles.distance}>{item.distance}</Text>
+            <Text style={styles.distance}>{getDisplayDistance(item)}</Text>
           </Pressable>
         )}
       />
-      {/* fixed by cami - added gradient behind search bar and navbar */}
-      {/* and also gradient white, 0% opacity top to 100% opacity bottom, 278px height */}
+
       <LinearGradient
         colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
         style={styles.bottomGradient}
       >
         <Pressable onPress={() => router.push("/keyboard")} style={styles.searchFloating}>
-          <Image
-            source={require("../assets/images/search.png")}
-            style={styles.searchIcon}
-          />
+          <Image source={require("../assets/images/search.png")} style={styles.searchIcon} />
           <Text style={styles.searchText}>Search</Text>
         </Pressable>
 
@@ -139,10 +376,12 @@ export default function Discover() {
           <Pressable onPress={() => router.push("/favorites")}>
             <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
           </Pressable>
+          <Pressable onPress={() => router.push("/profile")}>
+            <Image source={require("../assets/images/profilepic.jpg")} style={styles.navIcon} />
+            </Pressable>
         </View>
       </LinearGradient>
 
-      {/*fixed by cami filter popup overlay */}
       <Modal
         visible={showFilter}
         transparent={true}
@@ -196,7 +435,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 5,
     paddingHorizontal: 30,
-    marginBottom: 10,
   },
 
   filterButton: {
@@ -205,14 +443,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1.5,
     borderColor: "#674f5d",
+    paddingBottom: 7,
   },
-
+  filterButtonActive: {
+  backgroundColor: "#6AA792",
+  },
+  filterTextActive: {
+    color: "#FFFFFF",
+  },
   filterText: {
     fontSize: 13,
     color: "#674f5d",
     fontWeight: "500",
-    paddingBottom:12,
     fontFamily: "Quicksand-Medium",
+    paddingBottom:5,
   },
 
   listContent: {
@@ -258,7 +502,7 @@ const styles = StyleSheet.create({
 
   distance: {
     fontSize: 15,
-    color: "#8A9A9A",
+    color: "#674f5d ",
     fontFamily: "Quicksand-SemiBold",
 
   },
