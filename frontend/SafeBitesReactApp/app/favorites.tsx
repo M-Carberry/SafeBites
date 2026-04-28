@@ -1,13 +1,94 @@
 import { StyleSheet, Text, FlatList, View, Pressable, Image, Modal, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { useFavorites } from "../context/userFavorites"; 
+import { useState, useEffect } from "react";
+import { useFavorites } from "../context/userFavorites";
 import DiscoverFilter from "./Discover_filter";
+import * as Location from "expo-location";
+import { useUserPreferences } from "../context/UserPreferenceContext";
+import { sortByMatch, getMatchLabel, getMatchScore } from "../constants/scoreMatch";
+
+function getDistanceMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 3958.8;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function isOpenNow(hours: string[]) {
+  const now = new Date();
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const today = days[now.getDay()];
+  const todayLine = hours.find((h) => h.startsWith(today));
+  if (!todayLine || todayLine.includes("Closed")) return false;
+  const match = todayLine.match(/(\d+:\d+\s[AP]M)\s*–\s*(\d+:\d+\s[AP]M)/);
+  if (!match) return false;
+  const toMinutes = (t: string) => {
+    const [time, period] = t.split(" ");
+    let [h, m] = time.split(":").map(Number);
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  };
+  const current = now.getHours() * 60 + now.getMinutes();
+  return current >= toMinutes(match[1]) && current <= toMinutes(match[2]);
+}
 
 export default function Favorites() {
   const router = useRouter();
   const [showFilter, setShowFilter] = useState(false);
   const { favorites, toggleFav, isFav, loading } = useFavorites();
+  const { preferences } = useUserPreferences();
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [filteredFavs, setFilteredFavs] = useState(favorites);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const { coords } = await Location.getCurrentPositionAsync({});
+      setUserLocation(coords);
+    })();
+  }, []);
+
+  useEffect(() => {
+    applyFilter(activeFilter);
+  }, [activeFilter, userLocation, favorites]);
+
+  const applyFilter = (filter: string | null) => {
+    let sorted = sortByMatch([...favorites], preferences);
+
+    if (filter === "Nearby" && userLocation) {
+      sorted.sort((a, b) =>
+        getDistanceMiles(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude) -
+        getDistanceMiles(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude)
+      );
+    } else if (filter === "Most popular") {
+      sorted.sort((a, b) => b.rating - a.rating);
+    } else if (filter === "Low price") {
+      sorted.sort((a, b) => a.price - b.price);
+    } else if (filter === "Open now") {
+      sorted = sorted.filter((r) => isOpenNow(r.hours));
+    }
+
+    setFilteredFavs(sorted);
+  };
+
+  const handleFilter = (filter: string) => {
+    const next = activeFilter === filter ? null : filter;
+    setActiveFilter(next);
+  };
+
+  const getDisplayDistance = (item: any) => {
+    if (!userLocation || !item.latitude) return "";
+    const d = getDistanceMiles(userLocation.latitude, userLocation.longitude, item.latitude, item.longitude);
+    return `${d.toFixed(1)} mi`;
+  };
 
   if (loading) {
     return (
@@ -24,93 +105,101 @@ export default function Favorites() {
         <Text style={styles.discoverTitle}>Favorites</Text>
         <View style={styles.iconRow}>
           <Pressable onPress={() => router.push("/map_favorites")}>
-            <Image
-              source={require("../assets/images/icon.png")}
-              style={styles.topIcon}
-            />
+            <Image source={require("../assets/images/icon.png")} style={styles.topIcon} />
           </Pressable>
           <Pressable onPress={() => setShowFilter(true)}>
-            <Image
-              source={require("../assets/images/filter.png")}
-              style={styles.topIcon}
-            />
+            <Image source={require("../assets/images/filter.png")} style={styles.topIcon} />
           </Pressable>
         </View>
       </View>
 
-      {/*filters*/}
+      {/* filter buttons */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterRow}
       >
         {["Nearby", "Most popular", "Low price", "Open now"].map((item) => (
-          <View key={item} style={styles.filterButton}>
-            <Text style={styles.filterText}>{item}</Text>
-          </View>
+          <Pressable
+            key={item}
+            onPress={() => handleFilter(item)}
+            style={[
+              styles.filterButton,
+              activeFilter === item && styles.filterButtonActive,
+            ]}
+          >
+            <Text style={[
+              styles.filterText,
+              activeFilter === item && styles.filterTextActive,
+            ]}>
+              {item}
+            </Text>
+          </Pressable>
         ))}
       </ScrollView>
 
-      {/*fav list*/}
+      {/* fav list */}
       <FlatList
-        data={favorites} 
+        data={filteredFavs}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={{ alignItems: "center", marginTop: 60 }}>
             <Text style={{ color: "#674F5D", fontSize: 16 }}>
-              No favorites yet!
+              {activeFilter === "Open now" ? "No favorites are open right now!" : "No favorites yet!"}
             </Text>
             <Text style={{ color: "#674F5D", fontSize: 14, marginTop: 8 }}>
-              Tap the heart on any restaurant to save it here.
+              {activeFilter === "Open now" ? "Try checking back later." : "Tap the heart on any restaurant to save it here."}
             </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={styles.cardShadow}>
-            <Pressable
-              style={styles.card}
-              onPress={() => router.push(item.route as any)}
-            >
-              <Image source={item.image} style={styles.cardImage} />
+        renderItem={({ item }) => {
+          const score = getMatchScore(item, preferences);
+          const { label, color, borderColor } = getMatchLabel(score);
 
-              <View style={styles.cardText}>
-                <Text style={styles.restaurantName}>{item.name}</Text>
-                <Text style={styles.restaurantType}>{item.type}</Text>
-                <Text style={styles.distance}>{item.distance}</Text>
-              </View>
-
-              {/*heart button*/}
+          return (
+            <View style={styles.cardShadow}>
               <Pressable
-                style={styles.heartIcon}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  toggleFav(item);
-                }}
+                style={styles.card}
+                onPress={() => router.push(item.route as any)}
               >
-                <Image
-                  source={
-                    isFav(item.id)
-                      ? require("../assets/images/heartFilled.png")
-                      : require("../assets/images/heart.png")
-                  }
-                  style={{ width: 25, height: 25 }}
-                />
+                <Image source={item.image} style={styles.cardImage} />
+                <View style={styles.cardText}>
+                  <Text style={styles.restaurantName}>{item.name}</Text>
+                  <Text style={styles.restaurantType}>{item.type}</Text>
+                  <Text style={styles.distance}>{getDisplayDistance(item)}</Text>
+                  {/* match badge */}
+                  <View style={[styles.matchBadge, { backgroundColor: color, borderColor: borderColor, borderWidth: 1.5 }]}>
+                    <Text style={styles.matchBadgeText}>{label}</Text>
+                  </View>
+                </View>
+                {/* heart button */}
+                <Pressable
+                  style={styles.heartIcon}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleFav(item);
+                  }}
+                >
+                  <Image
+                    source={
+                      isFav(item.id)
+                        ? require("../assets/images/heartFilled.png")
+                        : require("../assets/images/heart.png")
+                    }
+                    style={{ width: 25, height: 25 }}
+                  />
+                </Pressable>
               </Pressable>
-            </Pressable>
-          </View>
-        )}
+            </View>
+          );
+        }}
       />
 
       <View style={styles.searchFloating}>
-        <Image
-          source={require("../assets/images/search.png")}
-          style={styles.searchIcon}
-        />
-        <Text onPress={() => router.push("/keyboard")} style={styles.searchText}>
-          Search
-        </Text>
+        <Image source={require("../assets/images/search.png")} style={styles.searchIcon} />
+        <Text onPress={() => router.push("/keyboard")} style={styles.searchText}>Search</Text>
       </View>
 
       <View style={styles.navBar}>
@@ -122,6 +211,9 @@ export default function Favorites() {
         </Pressable>
         <Pressable onPress={() => router.push("/favorites")}>
           <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
+        </Pressable>
+        <Pressable onPress={() => router.push("/profile")}>
+          <Image source={require("../assets/images/profilepic.jpg")} style={styles.navIcon} />
         </Pressable>
       </View>
 
@@ -262,6 +354,25 @@ restaurantName: {
   marginLeft: 12,
 },
 
+filterButtonActive: {
+  backgroundColor: "#6AA792",
+  borderColor: "#6AA792",
+},
+filterTextActive: {
+  color: "#FFFFFF",
+},
+matchBadge: {
+  alignSelf: "flex-start",
+  borderRadius: 10,
+  paddingHorizontal: 8,
+  paddingVertical: 3,
+  marginTop: 5,
+},
+matchBadgeText: {
+  fontSize: 11,
+  color: "#FFFFFF",
+  fontFamily: "Quicksand-SemiBold",
+},
 
   /*search  - fixed by cami*/
   searchFloating: {

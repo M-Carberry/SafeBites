@@ -78,23 +78,6 @@ export default function DiscoverFilter({ onClose }: FilterProps) {
 
         <ScrollView showsVerticalScrollIndicator={false}>
 
-          {/* Distance */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Distance</Text>
-            <Text style={styles.distanceText}>{distance}mi</Text>
-            <Slider
-              style={{ width: "100%", height: 40 }}
-              minimumValue={0.5}
-              maximumValue={10}
-              step={0.5}
-              value={distance}
-              onValueChange={(val) => setDistance(val)}
-              minimumTrackTintColor="#674f5d"
-              maximumTrackTintColor="#C5DBCA"
-              thumbTintColor="#674f5d"
-            />
-            <View style={styles.line} />
-          </View>
 
           {/* Allergies */}
           <View style={styles.section}>

@@ -81,6 +81,9 @@ export default function MapFavorites() {
         <Pressable onPress={() => router.push("/favorites")}>
           <Image source={require("../assets/images/heart.png")} style={styles.navIcon} />
         </Pressable>
+        <Pressable onPress={() => router.push("/profile")}>
+          <Image source={require("../assets/images/profilepic.jpg")} style={styles.navIcon} />
+        </Pressable>
       </View>
 
       {/* filter modal */}
