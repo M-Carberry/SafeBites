@@ -1,14 +1,31 @@
 import { Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function MapWrapper({ latitude, longitude }: { latitude: number, longitude: number }) {
+type Restaurant = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  route: string;
+};
+
+type MapWrapperProps = {
+  latitude: number;
+  longitude: number;
+  restaurants?: Restaurant[];
+};
+
+export default function MapWrapper({ latitude, longitude, restaurants = [] }: MapWrapperProps) {
+  const router = useRouter();
+
   if (Platform.OS === 'web') {
     const MapWeb = require('./MapWeb').default;
-    return <MapWeb latitude={latitude} longitude={longitude} />;
+    return <MapWeb latitude={latitude} longitude={longitude} restaurants={restaurants} />;
   }
 
   const RNMaps = require('react-native-maps');
   const MapView = RNMaps.default;
-  const Marker = RNMaps.Marker;
+  const { Marker } = RNMaps;
 
   return (
     <MapView
@@ -25,6 +42,16 @@ export default function MapWrapper({ latitude, longitude }: { latitude: number, 
         coordinate={{ latitude, longitude }}
         title="You are here!"
       />
+
+      {restaurants.map((r) => (
+        <Marker
+          key={r.id}
+          coordinate={{ latitude: r.latitude, longitude: r.longitude }}
+          title={r.name}
+          pinColor="#6aa792"
+          onCalloutPress={() => router.push(r.route as any)}
+        />
+      ))}
     </MapView>
   );
 }
